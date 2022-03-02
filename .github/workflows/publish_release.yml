@@ -1,0 +1,26 @@
+name: Publish Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - v*
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Compute Docker Tag
+        id: dockerTag
+        run: echo "::set-output name=tag::${GITHUB_REF#refs/*/}"
+      - name: Build and Publish Image to Registry
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: joeyx22lm/studygroup/firstproject
+          tags: latest,"${{ steps.dockerTag.outputs.tag }}"

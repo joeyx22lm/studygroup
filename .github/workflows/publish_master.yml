@@ -1,0 +1,28 @@
+name: Publish Master
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    tags-ignore:
+      - v*
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Compute Docker Tag
+        id: dockerTag
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      - name: Build and Publish Image to Registry
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: joeyx22lm/studygroup/ncscraper
+          tags: "master-${{ steps.dockerTag.outputs.sha_short }}"
