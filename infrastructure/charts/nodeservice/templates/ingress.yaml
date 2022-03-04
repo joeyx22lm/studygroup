@@ -23,4 +23,31 @@ spec:
               serviceName: {{ .Release.Name }}
               servicePort: {{ .Values.service.http.port }}
             path: /
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    traefikSelector: {{ .Values.ingress.traefikSelector }}
+  {{- if .Values.ingress.wildCardAnnotations }}
+  annotations: {{ toYaml .Values.ingress.wildCardAnnotations | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.tls }}
+  tls:
+  - hosts:
+    - "*.{{ .Values.ingress.hostname }}"
+    secretName: "{{ .Release.Name }}-wildcard-tls"
+  {{- end }}
+  rules:
+    - host: "*.{{ .Values.ingress.hostname }}"
+      http:
+        paths:
+          - backend:
+              serviceName: {{ .Release.Name }}
+              servicePort: {{ .Values.service.http.port }}
+            path: /
 {{- end }}
