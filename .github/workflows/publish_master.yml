@@ -27,7 +27,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
           repository: joeyx22lm/studygroup/firstproject
-          tags: latest,"${{ steps.dockerTag.outputs.tag }}"
+          tags: "master-${{ steps.dockerTag.outputs.sha_short }}"
       - name: Install aws-iam-authenticator
         run: brew install aws-iam-authenticator
       - name: Assume necessary role
@@ -43,4 +43,4 @@ jobs:
           cd infrastructure && \
           kubectl config use-context ironwolf-us-west-2 && \
           helmfile --file helmfile.yaml \
-            --state-values-set dockerTag="${{ steps.dockerTag.outputs.tag }}" sync
+            --state-values-set dockerTag="master-${{ steps.dockerTag.outputs.sha_short }}" sync
