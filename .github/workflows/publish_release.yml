@@ -6,9 +6,13 @@ on:
     tags:
       - v*
 
+env:
+  AWS_DEFAULT_REGION: us-west-2
+  KUBECONFIG: ${{ github.workspace }}/infrastructure/.kube/config
+
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       -
         name: Check out the repo
@@ -24,3 +28,19 @@ jobs:
           registry: docker.pkg.github.com
           repository: joeyx22lm/studygroup/firstproject
           tags: latest,"${{ steps.dockerTag.outputs.tag }}"
+      - name: Install aws-iam-authenticator
+        run: brew install aws-iam-authenticator
+      - name: Assume necessary role
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.PRODUCTION_AWS_KEY }}
+          aws-secret-access-key: ${{ secrets.PRODUCTION_AWS_SECRET }}
+          aws-region: us-west-2
+      - name: Setup helmfile
+        uses: mamezou-tech/setup-helmfile@v0.8.0
+      - name: Deploy HELMFILE
+        run: |
+          cd infrastructure && \
+          kubectl config use-context ironwolf-us-west-2 && \
+          helmfile --file helmfile.yaml \
+            --state-values-set dockerTag="${{ steps.dockerTag.outputs.tag }}" sync

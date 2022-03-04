@@ -1,0 +1,26 @@
+releases:
+  - name: webapp
+    chart: ./charts/nodeservice
+    namespace: studygroup
+    values:
+      - configMap:
+          env:
+            PORT: "8080"
+      - image:
+          pullSecret: "github-registry"
+          pullPolicy: "IfNotPresent"
+          repository: "ghcr.io/joeyx22lm/studygroup/firstproject"
+          tag: "{{ .Values.dockerTag }}"
+      - ingress:
+          enabled: true
+          hostname: "studygroup.orlandowest.io"
+          annotations:
+            acme.cert-manager.io/http01-edit-in-place: "true"
+            cert-manager.io/cluster-issuer: acme-letsencrypt
+      - deployment:
+          env:
+            - name: DD_AGENT_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          replicaCount: 1
